@@ -1,0 +1,4 @@
+id(Long),name(String),x(Double),y(Integer),creationDate(dd-MM-yyyy HH-mm-ss z),numberOfParticipants(int),description(String),genre(MusicGenre),studioName(String)
+2,"Lumen",1.23345,1,23-07-2025 23-11-47 YEKT,2,"desc",JAZZ,"studio"
+4,"Miyagi",3.4,5,23-07-2025 23-36-24 YEKT,6,"Very-very nice music, realy",SOUL,"Miyagi's studio"
+11,"Имя",12.0,12,02-08-2025 01-45-30 YEKT,2,"Описание",ROCK,"Студия"
