@@ -33,6 +33,7 @@ public class ClientMain {
             }
 
             if (input.command.equals("exit")) {
+                System.out.println("Input the command 'exit', try later");
                 break;
             }
 
