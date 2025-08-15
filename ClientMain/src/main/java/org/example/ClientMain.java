@@ -21,6 +21,9 @@ public class ClientMain {
         System.out.println("Client started. Type 'help' for available commands.");
 
         while (true) {
+            /*
+            Получаем объект команда+аргумент(если есть) в строковом представлении
+             */
             Console.CommandInput input = console.readCommand();
             if (input == null) {
                 System.out.println("Input is complete");
@@ -38,6 +41,9 @@ public class ClientMain {
             }
 
             try {
+                /*
+                Вызываем метод sendCommandToServer(input), где параметр - это объект команда+аргумент
+                 */
                 Object response = sendCommandToServer(input);
                 if (response instanceof Object[]) {
                     Arrays.stream((Object[]) response).forEach(System.out::println);
@@ -79,6 +85,10 @@ public class ClientMain {
 //            }
             System.out.println();
 
+            /*
+            Вызывает метод createCommandWrapper(input), где параметр - это объект команда+аргумент,
+            полученный в методе main в начале цикла, и переданный в метод sendCommandToServer
+             */
             CommandWrapper commandWrapper = createCommandWrapper(input);
 
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -125,6 +135,9 @@ public class ClientMain {
         wrapper.setCommandName(input.command);
 
         switch (input.command) {
+            case "remove_lower":
+                wrapper.setMusicBand(new Console().readMusicBand());
+                break;
             case "insert":
             case "update":
             case "replace_if_lower":
