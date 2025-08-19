@@ -65,6 +65,9 @@ public class ClientMain {
 
     private static Object sendCommandToServer(Console.CommandInput input) throws IOException {
         try (DatagramChannel channel = DatagramChannel.open()) {
+            /*
+            Установка неблокирующего режима
+             */
             channel.configureBlocking(false);
             channel.connect(new InetSocketAddress(SERVER_HOST, SERVER_PORT));
 
@@ -91,22 +94,54 @@ public class ClientMain {
              */
             CommandWrapper commandWrapper = createCommandWrapper(input);
 
+            /*
+            Создает расширяющийся буфер для хранения байтов
+             */
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            /*
+            Создает объект, способный сериализовать (преобразовать в байты) объект и записать полученные байты в буфер baos
+             */
             ObjectOutputStream oos = new ObjectOutputStream(baos);
+            /*
+            Преобразует в байты объект commandWrapper (полученный методом createCommandWrapper) и записывает их в поток oos
+             */
             oos.writeObject(commandWrapper);
+            /*
+            Переносит данные из потока oos в поток baos
+            Теперь в baos храниться сериализованные команда+аргумент+группа
+             */
             oos.flush();
 
+            /*
+            Записывает команда+аргумент+группа в массив байтов
+             */
             byte[] requestData = baos.toByteArray();
+            /*
+            Буфер данных в памяти для чтения, записи и навигации. ByteBuffer оборачивает requestData.
+             */
             ByteBuffer buffer = ByteBuffer.wrap(requestData);
+            /*
+            Отправляет buffer, хранящий команда+аргумент+группа, в DatagramChannel
+             */
             channel.write(buffer);
 
             // Wait for response
+            /*
+            Создает в куче буфер емкостью 64 кб
+             */
             ByteBuffer responseBuffer = ByteBuffer.allocate(65536);
             int bytesRead;
             int attempts = 0;
 
+            /*
+            Цикл повторяется пока попыток меньше 10 и получено 0 байтов
+             */
             while ((bytesRead = channel.read(responseBuffer)) == 0 && attempts < 10) {
                 attempts++;
+                /*
+                Ждем 100 миллисекунд
+                Если поток прервался, то отмечаем поток как "прерванный" и вызываем IOException из-за прерывания потока
+                 */
                 try {
                     Thread.sleep(100);
                 } catch (InterruptedException e) {
@@ -115,14 +150,32 @@ public class ClientMain {
                 }
             }
 
-            if (bytesRead == -1) {
-                throw new IOException("No response from server");
+            /*
+            Если ответа нет
+             */
+//            if (bytesRead == -1) {
+//                throw new IOException("No response from server");
+//            }
+            if (bytesRead == 0) {
+                // Превышено количество попыток, ответ так и не пришел
+                throw new IOException("No response from server (timeout)");
             }
 
+            /*
+            Переводим буфер в режим чтения (сбрасываем курсор в начало буфера)
+             */
             responseBuffer.flip();
+            /*
+            Создается массив байтов, размер которого равен количеству байтов в ответе от сервера
+            В созданный массив копируются данные из буфера
+             */
             byte[] responseData = new byte[responseBuffer.remaining()];
             responseBuffer.get(responseData);
 
+            /*
+            ois оборачивается вокруг bais и сериализует данные из него, bais, будучи расширяющимся буфером, оборачивается вокруг массива байтов
+            Из массива байтов собирается объект типа Object. Может выбросить CNFE
+             */
             ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(responseData));
             return ois.readObject();
         } catch (ClassNotFoundException e) {
