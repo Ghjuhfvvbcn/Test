@@ -161,6 +161,28 @@ public final class MusicBand implements Comparable<MusicBand>, Serializable {
         setStudio(studio);
     }
 
+    public MusicBand(){
+        this.creationDate = ZonedDateTime.now();
+    }
+
+    /**
+     * Устанавливает дату создания музыкальной группы.
+     * <p>
+     * @param creationDate Дата создания группы
+     * @apiNote Ограничения для переданного значения:
+     * <ul>
+     *     <li>Не может быть {@code null}</li>
+     * </ul>
+     * @throws IllegalArgumentException если переданное значение является {@code null}
+     */
+    public void setCreationDate(ZonedDateTime creationDate) {
+        if (creationDate == null) {
+            throw new IllegalArgumentException("Creation date value cannot be null");
+        } else {
+            this.creationDate = creationDate;
+        }
+    }
+
 
     /**
      * Устанавливает переданное значение в качестве id группы.

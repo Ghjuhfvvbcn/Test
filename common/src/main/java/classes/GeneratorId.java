@@ -1,11 +1,15 @@
 package classes;
 
+import java.io.Serializable;
+
 /**
  * Класс, представляющий генератор уникальных id типа {@code Long}.
  * <p>
  * Значения начинаются с 1 и увеличиваются на 1 при каждом вызове {@ling #generatId()}
  */
-class GeneratorId{
+class GeneratorId implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     /**
      * Счётчик id.
      */
