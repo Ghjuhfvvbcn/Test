@@ -44,8 +44,14 @@ public class Insert implements CommandWithArgument<Long>{
         return executor.insert(argument);
     }
 
+//    public String executeWithMusicBand(MusicBand musicBand) {
+//        return executor.insert_server(argument, musicBand); // Новый метод
+//    }
     public String executeWithMusicBand(MusicBand musicBand) {
-        return executor.insert_server(argument, musicBand); // Новый метод
+        if (argument == null) {
+            return "Error: No key specified for insert";
+        }
+        return executor.insert_server(argument, musicBand);
     }
 
     /**

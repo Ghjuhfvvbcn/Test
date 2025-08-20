@@ -2,10 +2,7 @@
 package org.example;
 
 import classes.MusicBand;
-import commands.Command;
-import commands.CommandWithArgument;
-import commands.Executor;
-import commands.Replace_if_lower;
+import commands.*;
 import utils.CommandMap;
 import utils.ReaderCSV;
 import utils.WriterCSV;
@@ -159,7 +156,7 @@ public class ServerMain {
         try {
             String commandName = commandWrapper.getCommandName();
 
-            // Получаем команду из мапы
+            // Получаем команду ИЗ МАПЫ (не создаем новую!)
             Command command = commands.get(commandName);
 
             if (command == null) {
@@ -170,28 +167,24 @@ public class ServerMain {
             if (command instanceof CommandWithArgument) {
                 CommandWithArgument<?> commandWithArg = (CommandWithArgument<?>) command;
 
-                // Устанавливаем аргумент в зависимости от типа команды
                 switch (commandName) {
                     case "insert":
                     case "update":
                     case "remove_key":
                     case "remove_lower_key":
                     case "replace_if_lower":
-                        // Для команд с числовым аргументом (ключом)
                         if (commandWrapper.getKey() != null) {
-                            // Создаем временную команду для установки аргумента
-                            CommandWithArgument<Long> numericCommand = (CommandWithArgument<Long>) command;
-                            numericCommand.setArgument(commandWrapper.getKey().toString());
+                            // Устанавливаем аргумент в СУЩЕСТВУЮЩИЙ объект команды
+                            commandWithArg.setArgument(commandWrapper.getKey().toString());
                         } else {
                             return "Error: Command '" + commandName + "' requires a key argument";
                         }
                         break;
 
                     case "filter_starts_with_name":
-                        // Для команд со строковым аргументом
                         if (commandWrapper.getArgument() != null) {
-                            CommandWithArgument<String> stringCommand = (CommandWithArgument<String>) command;
-                            stringCommand.setArgument(commandWrapper.getArgument().toString());
+                            // Устанавливаем аргумент в СУЩЕСТВУЮЩИЙ объект команды
+                            commandWithArg.setArgument(commandWrapper.getArgument().toString());
                         } else {
                             return "Error: Command '" + commandName + "' requires a string argument";
                         }
@@ -199,7 +192,7 @@ public class ServerMain {
                 }
             }
 
-            // Выполняем команду и возвращаем результат
+            // Выполняем команду (ТЕПЕРЬ С ПРАВИЛЬНЫМ OBJECT!)
             return executeCommand(command, commandWrapper);
 
         } catch (Exception e) {
@@ -215,30 +208,26 @@ public class ServerMain {
      */
     private static Object executeCommand(Command command, CommandWrapper commandWrapper) {
         try {
-            // Для команд, которые требуют дополнительных данных (MusicBand)
-            switch (command.getCommandName()) {
-                case "insert":
-                    if (commandWrapper.getMusicBand() != null) {
-                        return executor.insert_server(commandWrapper.getKey(), commandWrapper.getMusicBand());
-                    }
-                    return "Error: No MusicBand data provided";
+            String commandName = command.getCommandName();
 
-                case "update":
-                    if (commandWrapper.getMusicBand() != null) {
-                        return executor.update_server(commandWrapper.getKey(), commandWrapper.getMusicBand());
+            // Для команд, которые требуют MusicBand
+            if (commandName.equals("insert") || commandName.equals("update") || commandName.equals("replace_if_lower")) {
+                if (commandWrapper.getMusicBand() != null) {
+                    // Используем специальные методы executeWithMusicBand если они есть
+                    if (command instanceof Insert) {
+                        return ((Insert) command).executeWithMusicBand(commandWrapper.getMusicBand());
+                    } else if (command instanceof Update) {
+                        return ((Update) command).executeWithMusicBand(commandWrapper.getMusicBand());
+                    } else if (command instanceof Replace_if_lower) {
+                        return ((Replace_if_lower) command).executeWithMusicBand(commandWrapper.getMusicBand());
                     }
-                    return "Error: No MusicBand data provided";
-
-                case "replace_if_lower":
-                    if (commandWrapper.getMusicBand() != null) {
-                        return executor.replace_if_lower_server(commandWrapper.getKey(), commandWrapper.getMusicBand());
-                    }
-                    return "Error: No MusicBand data provided";
-
-                default:
-                    // Для простых команд просто выполняем их
-                    return command.execute();
+                }
+                return "Error: No MusicBand data provided for command '" + commandName + "'";
             }
+
+            // Для всех остальных команд просто выполняем их
+            return command.execute();
+
         } catch (Exception e) {
             return "Error executing command: " + e.getMessage();
         }

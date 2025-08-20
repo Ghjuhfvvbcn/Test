@@ -44,8 +44,14 @@ public class Replace_if_lower implements CommandWithArgument{
         return executor.replace_if_lower(argument);
     }
 
+//    public String executeWithMusicBand(MusicBand musicBand) {
+//        return executor.replace_if_lower_server(argument, musicBand); // Новый метод
+//    }
     public String executeWithMusicBand(MusicBand musicBand) {
-        return executor.replace_if_lower_server(argument, musicBand); // Новый метод
+        if (argument == null) {
+            return "Error: No key specified for replace_if_lower";
+        }
+        return executor.replace_if_lower_server(argument, musicBand);
     }
 
     /**

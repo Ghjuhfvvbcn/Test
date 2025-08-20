@@ -44,8 +44,14 @@ public class Update implements CommandWithArgument<Long>{
         return executor.update(argument);
     }
 
+//    public String executeWithMusicBand(MusicBand musicBand) {
+//        return executor.update_server(argument, musicBand); // Новый метод
+//    }
     public String executeWithMusicBand(MusicBand musicBand) {
-        return executor.update_server(argument, musicBand); // Новый метод
+        if (argument == null) {
+            return "Error: No key specified for update";
+        }
+        return executor.update_server(argument, musicBand);
     }
 
     /**
