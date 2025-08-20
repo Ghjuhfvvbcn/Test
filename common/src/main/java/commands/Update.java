@@ -1,5 +1,7 @@
 package commands;
 
+import classes.MusicBand;
+
 /**
  * Команда для обновления элемента коллекции по ключу. Команда имеет аргумент.
  * <p>
@@ -22,6 +24,8 @@ public class Update implements CommandWithArgument<Long>{
      */
     private Long argument;
 
+    private MusicBand musicBand;
+
     /**
      * Создает объект {@link Update} по указанному аргументу типа {@link Executor}.
      * @param executor Приемник команд
@@ -38,6 +42,10 @@ public class Update implements CommandWithArgument<Long>{
     @Override
     public String execute(){
         return executor.update(argument);
+    }
+
+    public String executeWithMusicBand(MusicBand musicBand) {
+        return executor.update_server(argument, musicBand); // Новый метод
     }
 
     /**

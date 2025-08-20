@@ -233,10 +233,30 @@ public class Executor {
             return "The music band was successfully inserted to the collection";
         }
     }
+//    public String insert(Long key, MusicBand band) {
+//        if (musicBands.containsKey(key)) {
+//            return "The collection already contain the key: " + key;
+//        } else {
+//            band.setId(key);
+//            musicBands.put(key, band);
+//            saveCollection(); // ← СОХРАНЯЕМ!
+//            return "Music band inserted successfully.";
+//        }
+//    }
 
     /**
      * Обновляет элемент по ключу и возвращает результат в виде строки.
      */
+//    public String update(Long id, MusicBand band) {
+//        if (!musicBands.containsKey(id)) {
+//            return "The collection doesn't contain the key " + id;
+//        } else {
+//            band.setId(id);
+//            musicBands.put(id, band);
+//            saveCollection(); // ← СОХРАНЯЕМ!
+//            return "Music band updated successfully.";
+//        }
+//    }
     public String update(Long id) {
         if (!musicBands.containsKey(id)) {
             return "The collection doesn't contain the key " + id;
@@ -245,6 +265,34 @@ public class Executor {
             band.setId(id);
             musicBands.put(id, band);
             return "The band with ID " + id + " was successfully updated";
+        }
+    }
+
+    /**
+     * Вставляет элемент (для сервера) - уже полученный MusicBand
+     */
+    public String insert_server(Long key, MusicBand band) {
+        if (musicBands.containsKey(key)) {
+            return "The collection already contain the key: " + key;
+        } else {
+            band.setId(key);
+            musicBands.put(key, band);
+            saveCollection();
+            return "Music band inserted successfully.";
+        }
+    }
+
+    /**
+     * Обновляет элемент (для сервера) - уже полученный MusicBand
+     */
+    public String update_server(Long id, MusicBand band) {
+        if (!musicBands.containsKey(id)) {
+            return "The collection doesn't contain the key " + id;
+        } else {
+            band.setId(id);
+            musicBands.put(id, band);
+            saveCollection();
+            return "Music band updated successfully.";
         }
     }
 
@@ -266,6 +314,40 @@ public class Executor {
     /**
      * Заменяет элемент если новое значение меньше и возвращает результат в виде строки.
      */
+    public String replace_if_lower_server(Long key, MusicBand newBand) {
+        if (musicBands.isEmpty()) {
+            return "The collection is empty";
+        }
+        if (!musicBands.containsKey(key)) {
+            return "The collection doesn't contain the key " + key;
+        }
+        MusicBand oldBand = musicBands.get(key);
+        newBand.setId(key);
+        if (compareByDateAndName.compare(oldBand, newBand) > 0) {
+            musicBands.put(key, newBand);
+            saveCollection();
+            return "Music band replaced successfully.";
+        } else {
+            return "New value is not lower than existing value.";
+        }
+    }
+//    public String replace_if_lower(Long key, MusicBand newBand) {
+//        if (musicBands.isEmpty()) {
+//            return "The collection is empty";
+//        }
+//        if (!musicBands.containsKey(key)) {
+//            return "The collection doesn't contain the key " + key;
+//        }
+//        MusicBand oldBand = musicBands.get(key);
+//        newBand.setId(key);
+//        if (compareByDateAndName.compare(oldBand, newBand) > 0) {
+//            musicBands.put(key, newBand);
+//            saveCollection(); // ← СОХРАНЯЕМ!
+//            return "Music band replaced successfully.";
+//        } else {
+//            return "New value is not lower than existing value.";
+//        }
+//    }
     public String replace_if_lower(Long key) {
         if (musicBands.isEmpty()) {
             return "The collection is empty";
@@ -332,5 +414,9 @@ public class Executor {
         } catch (IOException e) {
             return "Error saving collection: " + e.getMessage();
         }
+    }
+
+    public TreeMap<Long, MusicBand> getMusicBandsCollection() {
+        return musicBands;
     }
 }

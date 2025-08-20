@@ -1,5 +1,7 @@
 package commands;
 
+import classes.MusicBand;
+
 /**
  * Команда добавляет новый элемент с заданным ключом. Команда имеет аргумент.
  * <p>
@@ -22,6 +24,8 @@ public class Insert implements CommandWithArgument<Long>{
      */
     private Long argument;
 
+    private MusicBand musicBand;
+
     /**
      * Создает объект {@link Insert} по указанному аргументу типа {@link Executor}.
      * @param executor Приемник команд
@@ -38,6 +42,10 @@ public class Insert implements CommandWithArgument<Long>{
     @Override
     public String execute(){
         return executor.insert(argument);
+    }
+
+    public String executeWithMusicBand(MusicBand musicBand) {
+        return executor.insert_server(argument, musicBand); // Новый метод
     }
 
     /**

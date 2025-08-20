@@ -5,6 +5,7 @@ import classes.MusicBand;
 import commands.Command;
 import commands.CommandWithArgument;
 import commands.Executor;
+import commands.Replace_if_lower;
 import utils.CommandMap;
 import utils.ReaderCSV;
 import utils.WriterCSV;
@@ -36,6 +37,9 @@ public class ServerMain {
         // Создаем Executor и инициализируем мапу команд
         executor = new Executor(file_csv, null); // file_script может быть null для сервера
         commands = CommandMap.createMapWithCommands(executor);
+
+        // Получаем коллекцию из Executor
+        TreeMap<Long, MusicBand> musicBands = executor.getMusicBandsCollection();
 
         System.out.println("Server started. Loaded " + musicBands.size() + " music bands.");
 
@@ -215,43 +219,24 @@ public class ServerMain {
             switch (command.getCommandName()) {
                 case "insert":
                     if (commandWrapper.getMusicBand() != null) {
-                        musicBands.put(commandWrapper.getKey(), commandWrapper.getMusicBand());
-                        executor.saveCollection(); // Сохраняем
-                        return "Music band inserted successfully.";
+                        return executor.insert_server(commandWrapper.getKey(), commandWrapper.getMusicBand());
                     }
                     return "Error: No MusicBand data provided";
 
                 case "update":
-                    if (musicBands.containsKey(commandWrapper.getKey())) {
-                        if (commandWrapper.getMusicBand() != null) {
-                            musicBands.put(commandWrapper.getKey(), commandWrapper.getMusicBand());
-                            executor.saveCollection(); // Сохраняем
-                            return "Music band updated successfully.";
-                        }
-                        return "Error: No MusicBand data provided";
+                    if (commandWrapper.getMusicBand() != null) {
+                        return executor.update_server(commandWrapper.getKey(), commandWrapper.getMusicBand());
                     }
-                    return "Error: Key not found.";
+                    return "Error: No MusicBand data provided";
 
                 case "replace_if_lower":
-                    if (musicBands.containsKey(commandWrapper.getKey())) {
-                        if (commandWrapper.getMusicBand() != null) {
-                            MusicBand oldBand = musicBands.get(commandWrapper.getKey());
-                            MusicBand newBand = commandWrapper.getMusicBand();
-                            newBand.setId(commandWrapper.getKey());
-
-                            if (MusicBand.compareByDateAndName.compare(oldBand, newBand) > 0) {
-                                musicBands.put(commandWrapper.getKey(), newBand);
-                                executor.saveCollection(); // Сохраняем
-                                return "Music band replaced successfully.";
-                            }
-                            return "New value is not lower than existing value.";
-                        }
-                        return "Error: No MusicBand data provided";
+                    if (commandWrapper.getMusicBand() != null) {
+                        return executor.replace_if_lower_server(commandWrapper.getKey(), commandWrapper.getMusicBand());
                     }
-                    return "Error: Key not found.";
+                    return "Error: No MusicBand data provided";
 
                 default:
-                    // ВАЖНО: теперь команды возвращают результат выполнения!
+                    // Для простых команд просто выполняем их
                     return command.execute();
             }
         } catch (Exception e) {

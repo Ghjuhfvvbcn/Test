@@ -1,5 +1,7 @@
 package commands;
 
+import classes.MusicBand;
+
 /**
  * Команда заменяет значение по ключу, если новое значение меньше старого. Команда имеет аргумент.
  * <p>
@@ -22,6 +24,8 @@ public class Replace_if_lower implements CommandWithArgument{
      */
     private Long argument;
 
+    private MusicBand musicBand;
+
     /**
      * Создает объект {@link Replace_if_lower} по указанному аргументу типа {@link Executor}.
      * @param executor Приемник команд
@@ -38,6 +42,10 @@ public class Replace_if_lower implements CommandWithArgument{
     @Override
     public String execute(){
         return executor.replace_if_lower(argument);
+    }
+
+    public String executeWithMusicBand(MusicBand musicBand) {
+        return executor.replace_if_lower_server(argument, musicBand); // Новый метод
     }
 
     /**
