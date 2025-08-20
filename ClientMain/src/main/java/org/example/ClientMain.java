@@ -41,6 +41,12 @@ public class ClientMain {
             }
 
             try {
+                // Проверяем наличие обязательных аргументов перед отправкой на сервер
+                String validationError = validateCommandInput(input);
+                if (validationError != null) {
+                    System.out.println(validationError);
+                    continue;
+                }
                 /*
                 Вызываем метод sendCommandToServer(input), где параметр - это объект команда+аргумент
                  */
@@ -61,6 +67,41 @@ public class ClientMain {
                 }
             }
         }
+    }
+
+    /**
+     * Проверяет корректность ввода команды и аргументов
+     */
+    private static String validateCommandInput(Console.CommandInput input) {
+        switch (input.command) {
+            case "insert":
+            case "update":
+            case "replace_if_lower":
+            case "remove_key":
+            case "remove_lower_key":
+                // Команды, требующие числового аргумента (ключа)
+                if (input.argument == null || input.argument.trim().isEmpty()) {
+                    return "Error: Command '" + input.command + "' requires a numeric argument (key)";
+                }
+                try {
+                    Long.parseLong(input.argument.trim());
+                } catch (NumberFormatException e) {
+                    return "Error: Argument for '" + input.command + "' must be a valid number";
+                }
+                break;
+
+            case "filter_starts_with_name":
+                // Команда, требующая строкового аргумента
+                if (input.argument == null || input.argument.trim().isEmpty()) {
+                    return "Error: Command '" + input.command + "' requires a string argument";
+                }
+                break;
+
+            case "remove_lower":
+                // Команда не требует аргумента в командной строке, но требует ввод MusicBand
+                break;
+        }
+        return null; // Валидация пройдена
     }
 
     private static Object sendCommandToServer(Console.CommandInput input) throws IOException {
@@ -194,6 +235,20 @@ public class ClientMain {
             case "insert":
             case "update":
             case "replace_if_lower":
+                // ==================== ДОБАВЛЕНА ПРОВЕРКА ====================
+                if (input.argument == null || input.argument.trim().isEmpty()) {
+                    System.out.println("Error: Command '" + input.command + "' requires a key argument");
+                    return null;
+                }
+                try {
+                    long key = Long.parseLong(input.argument);
+                    wrapper.setKey(key);
+                    wrapper.setMusicBand(new Console().readMusicBand());
+                } catch (NumberFormatException e) {
+                    System.out.println("Error: Key must be a valid number for command '" + input.command + "'");
+                    return null;
+                }
+                // ====================================================
                 wrapper.setKey(Long.parseLong(input.argument));
                 wrapper.setMusicBand(new Console().readMusicBand());
                 break;
@@ -202,6 +257,12 @@ public class ClientMain {
                 wrapper.setKey(Long.parseLong(input.argument));
                 break;
             case "filter_starts_with_name":
+                // ==================== ДОБАВЛЕНА ПРОВЕРКА ====================
+                if (input.argument == null || input.argument.trim().isEmpty()) {
+                    System.out.println("Error: Command '" + input.command + "' requires a string argument");
+                    return null;
+                }
+                // ====================================================
                 wrapper.setArgument(input.argument);
                 break;
         }

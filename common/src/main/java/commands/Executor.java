@@ -321,4 +321,16 @@ public class Executor {
         }
         return result.toString();
     }
+
+    /**
+     * Сохраняет коллекцию и возвращает результат в виде строки
+     */
+    public String saveCollection() {
+        try {
+            WriterCSV.loadToFile(file_csv, musicBands);
+            return "The collection was successfully saved to the file '" + file_csv + "'";
+        } catch (IOException e) {
+            return "Error saving collection: " + e.getMessage();
+        }
+    }
 }

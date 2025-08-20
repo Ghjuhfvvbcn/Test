@@ -22,6 +22,7 @@ public class ServerMain {
     private static TreeMap<Long, MusicBand> musicBands;
     private static File file_csv;
     private static Map<String, Command> commands; // Мапа команд
+    private static Executor executor;
 
     public static void main(String[] args) {
         if (args.length != 1) {
@@ -33,7 +34,7 @@ public class ServerMain {
         musicBands = ReaderCSV.loadFromFile(file_csv);
 
         // Создаем Executor и инициализируем мапу команд
-        Executor executor = new Executor(file_csv, null); // file_script может быть null для сервера
+        executor = new Executor(file_csv, null); // file_script может быть null для сервера
         commands = CommandMap.createMapWithCommands(executor);
 
         System.out.println("Server started. Loaded " + musicBands.size() + " music bands.");
@@ -205,15 +206,17 @@ public class ServerMain {
     /**
      * Выполняет команду и возвращает результат
      */
+    /**
+     * Выполняет команду и возвращает результат
+     */
     private static Object executeCommand(Command command, CommandWrapper commandWrapper) {
         try {
             // Для команд, которые требуют дополнительных данных (MusicBand)
             switch (command.getCommandName()) {
                 case "insert":
                     if (commandWrapper.getMusicBand() != null) {
-                        // Вставляем в коллекцию
                         musicBands.put(commandWrapper.getKey(), commandWrapper.getMusicBand());
-                        saveCollection();
+                        executor.saveCollection(); // Сохраняем
                         return "Music band inserted successfully.";
                     }
                     return "Error: No MusicBand data provided";
@@ -222,7 +225,7 @@ public class ServerMain {
                     if (musicBands.containsKey(commandWrapper.getKey())) {
                         if (commandWrapper.getMusicBand() != null) {
                             musicBands.put(commandWrapper.getKey(), commandWrapper.getMusicBand());
-                            saveCollection();
+                            executor.saveCollection(); // Сохраняем
                             return "Music band updated successfully.";
                         }
                         return "Error: No MusicBand data provided";
@@ -238,7 +241,7 @@ public class ServerMain {
 
                             if (MusicBand.compareByDateAndName.compare(oldBand, newBand) > 0) {
                                 musicBands.put(commandWrapper.getKey(), newBand);
-                                saveCollection();
+                                executor.saveCollection(); // Сохраняем
                                 return "Music band replaced successfully.";
                             }
                             return "New value is not lower than existing value.";
@@ -248,9 +251,8 @@ public class ServerMain {
                     return "Error: Key not found.";
 
                 default:
-                    // Для простых команд просто выполняем их
-                    command.execute();
-                    return "Command executed successfully";
+                    // ВАЖНО: теперь команды возвращают результат выполнения!
+                    return command.execute();
             }
         } catch (Exception e) {
             return "Error executing command: " + e.getMessage();
@@ -285,25 +287,25 @@ public class ServerMain {
         }
     }
 
-    private static String getCollectionInfo() {
-        return String.format(
-                "Type: TreeMap<Long, MusicBand>\n" +
-                        "Size: %d\n" +
-                        "First key: %d\n" +
-                        "Last key: %d",
-                musicBands.size(),
-                musicBands.isEmpty() ? 0 : musicBands.firstKey(),
-                musicBands.isEmpty() ? 0 : musicBands.lastKey()
-        );
-    }
-
-    private static void saveCollection() {
-        try {
-            WriterCSV.loadToFile(file_csv, musicBands);
-        } catch (IOException e) {
-            System.err.println("Error saving collection: " + e.getMessage());
-        }
-    }
+//    private static String getCollectionInfo() {
+//        return String.format(
+//                "Type: TreeMap<Long, MusicBand>\n" +
+//                        "Size: %d\n" +
+//                        "First key: %d\n" +
+//                        "Last key: %d",
+//                musicBands.size(),
+//                musicBands.isEmpty() ? 0 : musicBands.firstKey(),
+//                musicBands.isEmpty() ? 0 : musicBands.lastKey()
+//        );
+//    }
+//
+//    private static void saveCollection() {
+//        try {
+//            WriterCSV.loadToFile(file_csv, musicBands);
+//        } catch (IOException e) {
+//            System.err.println("Error saving collection: " + e.getMessage());
+//        }
+//    }
 }
 
 
