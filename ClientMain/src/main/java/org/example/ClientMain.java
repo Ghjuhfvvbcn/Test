@@ -9,7 +9,6 @@ import java.io.*;
 import java.net.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
-import java.nio.channels.SocketChannel;
 import java.util.Arrays;
 
 public class ClientMain {
@@ -21,9 +20,6 @@ public class ClientMain {
         System.out.println("Client started. Type 'help' for available commands.");
 
         while (true) {
-            /*
-            Получаем объект команда+аргумент(если есть) в строковом представлении
-             */
             Console.CommandInput input = console.readCommand();
             if (input == null) {
                 System.out.println("Input is complete");
@@ -47,10 +43,24 @@ public class ClientMain {
                     System.out.println(validationError);
                     continue;
                 }
-                /*
-                Вызываем метод sendCommandToServer(input), где параметр - это объект команда+аргумент
-                 */
-                Object response = sendCommandToServer(input);
+
+                // ==================== ИЗМЕНЕНИЕ: Чтение MusicBand ТОЛЬКО ЗДЕСЬ ====================
+                MusicBand musicBand = null;
+                if (input.command.equals("remove_lower") ||
+                        input.command.equals("insert") ||
+                        input.command.equals("update") ||
+                        input.command.equals("replace_if_lower")) {
+
+                    System.out.println("Please enter MusicBand details:");
+                    musicBand = console.readMusicBand();
+                    if (musicBand == null) {
+                        System.out.println("Error: Failed to read MusicBand");
+                        continue;
+                    }
+                }
+                // =================================================================================
+
+                Object response = sendCommandToServer(input, musicBand); // Передаем musicBand
                 if (response instanceof Object[]) {
                     Arrays.stream((Object[]) response).forEach(System.out::println);
                 } else {
@@ -69,9 +79,6 @@ public class ClientMain {
         }
     }
 
-    /**
-     * Проверяет корректность ввода команды и аргументов
-     */
     private static String validateCommandInput(Console.CommandInput input) {
         switch (input.command) {
             case "insert":
@@ -79,7 +86,6 @@ public class ClientMain {
             case "replace_if_lower":
             case "remove_key":
             case "remove_lower_key":
-                // Команды, требующие числового аргумента (ключа)
                 if (input.argument == null || input.argument.trim().isEmpty()) {
                     return "Error: Command '" + input.command + "' requires a numeric argument (key)";
                 }
@@ -91,98 +97,45 @@ public class ClientMain {
                 break;
 
             case "filter_starts_with_name":
-                // Команда, требующая строкового аргумента
                 if (input.argument == null || input.argument.trim().isEmpty()) {
                     return "Error: Command '" + input.command + "' requires a string argument";
                 }
                 break;
-
-            case "remove_lower":
-                // Команда не требует аргумента в командной строке, но требует ввод MusicBand
-                break;
         }
-        return null; // Валидация пройдена
+        return null;
     }
 
-    private static Object sendCommandToServer(Console.CommandInput input) throws IOException {
+    // ==================== ИЗМЕНЕННЫЙ МЕТОД: добавлен параметр musicBand ====================
+    private static Object sendCommandToServer(Console.CommandInput input, MusicBand musicBand) throws IOException {
         try (DatagramChannel channel = DatagramChannel.open()) {
-            /*
-            Установка неблокирующего режима
-             */
             channel.configureBlocking(false);
             channel.connect(new InetSocketAddress(SERVER_HOST, SERVER_PORT));
 
             if (!channel.isConnected()) {
                 throw new IOException("Не удалось зафиксировать адрес");
             }
-            // Try to connect with timeout
-//            if (!channel.connect(new InetSocketAddress(SERVER_HOST, SERVER_PORT))) {
-//                while (!channel.finishConnect()) {
-//                    System.out.print(".");
-//                    try {
-//                        Thread.sleep(100);
-//                    } catch (InterruptedException e) {
-//                        Thread.currentThread().interrupt();
-//                        throw new IOException("Connection interrupted");
-//                    }
-//                }
-//            }
-            System.out.println();
 
-            /*
-            Вызывает метод createCommandWrapper(input), где параметр - это объект команда+аргумент,
-            полученный в методе main в начале цикла, и переданный в метод sendCommandToServer
-             */
-            CommandWrapper commandWrapper = createCommandWrapper(input);
+            // ==================== ПЕРЕДАЕМ musicBand в createCommandWrapper ====================
+            CommandWrapper commandWrapper = createCommandWrapper(input, musicBand);
+            if (commandWrapper == null) {
+                return "Error: Failed to create command wrapper";
+            }
 
-            /*
-            Создает расширяющийся буфер для хранения байтов
-             */
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            /*
-            Создает объект, способный сериализовать (преобразовать в байты) объект и записать полученные байты в буфер baos
-             */
             ObjectOutputStream oos = new ObjectOutputStream(baos);
-            /*
-            Преобразует в байты объект commandWrapper (полученный методом createCommandWrapper) и записывает их в поток oos
-             */
             oos.writeObject(commandWrapper);
-            /*
-            Переносит данные из потока oos в поток baos
-            Теперь в baos храниться сериализованные команда+аргумент+группа
-             */
             oos.flush();
 
-            /*
-            Записывает команда+аргумент+группа в массив байтов
-             */
             byte[] requestData = baos.toByteArray();
-            /*
-            Буфер данных в памяти для чтения, записи и навигации. ByteBuffer оборачивает requestData.
-             */
             ByteBuffer buffer = ByteBuffer.wrap(requestData);
-            /*
-            Отправляет buffer, хранящий команда+аргумент+группа, в DatagramChannel, т.е. на сервер
-             */
             channel.write(buffer);
 
-            // Wait for response
-            /*
-            Создает в куче буфер емкостью 64 кб
-             */
             ByteBuffer responseBuffer = ByteBuffer.allocate(65536);
             int bytesRead;
             int attempts = 0;
 
-            /*
-            Цикл повторяется пока попыток меньше 10 и получено 0 байтов
-             */
             while ((bytesRead = channel.read(responseBuffer)) == 0 && attempts < 10) {
                 attempts++;
-                /*
-                Ждем 100 миллисекунд
-                Если поток прервался, то отмечаем поток как "прерванный" и вызываем IOException из-за прерывания потока
-                 */
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException e) {
@@ -191,32 +144,14 @@ public class ClientMain {
                 }
             }
 
-            /*
-            Если ответа нет
-             */
-//            if (bytesRead == -1) {
-//                throw new IOException("No response from server");
-//            }
             if (bytesRead == 0) {
-                // Превышено количество попыток, ответ так и не пришел
                 throw new IOException("No response from server (timeout)");
             }
 
-            /*
-            Переводим буфер в режим чтения (сбрасываем курсор в начало буфера)
-             */
             responseBuffer.flip();
-            /*
-            Создается массив байтов, размер которого равен количеству байтов в ответе от сервера
-            В созданный массив копируются данные из буфера
-             */
             byte[] responseData = new byte[responseBuffer.remaining()];
             responseBuffer.get(responseData);
 
-            /*
-            ois оборачивается вокруг bais и сериализует данные из него, bais, будучи расширяющимся буфером, оборачивается вокруг массива байтов
-            Из массива байтов собирается объект типа Object. Может выбросить CNFE
-             */
             ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(responseData));
             return ois.readObject();
         } catch (ClassNotFoundException e) {
@@ -224,49 +159,65 @@ public class ClientMain {
         }
     }
 
-    private static CommandWrapper createCommandWrapper(Console.CommandInput input) {
-        CommandWrapper wrapper = new CommandWrapper();
-        wrapper.setCommandName(input.command);
+    // ==================== ИЗМЕНЕННЫЙ МЕТОД: принимает musicBand ====================
+    private static CommandWrapper createCommandWrapper(Console.CommandInput input, MusicBand musicBand) {
+        try {
+            CommandWrapper wrapper = new CommandWrapper();
+            wrapper.setCommandName(input.command);
 
-        switch (input.command) {
-            case "remove_lower":
-                wrapper.setMusicBand(new Console().readMusicBand());
-                break;
-            case "insert":
-            case "update":
-            case "replace_if_lower":
-                // ==================== ДОБАВЛЕНА ПРОВЕРКА ====================
-                if (input.argument == null || input.argument.trim().isEmpty()) {
-                    System.out.println("Error: Command '" + input.command + "' requires a key argument");
-                    return null;
-                }
-                try {
-                    long key = Long.parseLong(input.argument);
-                    wrapper.setKey(key);
-                    wrapper.setMusicBand(new Console().readMusicBand());
-                } catch (NumberFormatException e) {
-                    System.out.println("Error: Key must be a valid number for command '" + input.command + "'");
-                    return null;
-                }
-                // ====================================================
-                wrapper.setKey(Long.parseLong(input.argument));
-                wrapper.setMusicBand(new Console().readMusicBand());
-                break;
-            case "remove_key":
-            case "remove_lower_key":
-                wrapper.setKey(Long.parseLong(input.argument));
-                break;
-            case "filter_starts_with_name":
-                // ==================== ДОБАВЛЕНА ПРОВЕРКА ====================
-                if (input.argument == null || input.argument.trim().isEmpty()) {
-                    System.out.println("Error: Command '" + input.command + "' requires a string argument");
-                    return null;
-                }
-                // ====================================================
-                wrapper.setArgument(input.argument);
-                break;
+            switch (input.command) {
+                case "remove_lower":
+                    // ==================== ИСПОЛЬЗУЕМ ПЕРЕДАННЫЙ musicBand ====================
+                    wrapper.setMusicBand(musicBand);
+                    break;
+
+                case "insert":
+                case "update":
+                case "replace_if_lower":
+                    if (input.argument == null || input.argument.trim().isEmpty()) {
+                        System.out.println("Error: Command '" + input.command + "' requires a key argument");
+                        return null;
+                    }
+                    try {
+                        long key = Long.parseLong(input.argument);
+                        wrapper.setKey(key);
+                        // ==================== ИСПОЛЬЗУЕМ ПЕРЕДАННЫЙ musicBand ====================
+                        wrapper.setMusicBand(musicBand);
+                    } catch (NumberFormatException e) {
+                        System.out.println("Error: Key must be a valid number for command '" + input.command + "'");
+                        return null;
+                    }
+                    break;
+
+                case "remove_key":
+                case "remove_lower_key":
+                    if (input.argument == null || input.argument.trim().isEmpty()) {
+                        System.out.println("Error: Command '" + input.command + "' requires a key argument");
+                        return null;
+                    }
+                    try {
+                        long key = Long.parseLong(input.argument);
+                        wrapper.setKey(key);
+                    } catch (NumberFormatException e) {
+                        System.out.println("Error: Key must be a valid number for command '" + input.command + "'");
+                        return null;
+                    }
+                    break;
+
+                case "filter_starts_with_name":
+                    if (input.argument == null || input.argument.trim().isEmpty()) {
+                        System.out.println("Error: Command '" + input.command + "' requires a string argument");
+                        return null;
+                    }
+                    wrapper.setArgument(input.argument);
+                    break;
+            }
+
+            return wrapper;
+
+        } catch (Exception e) {
+            System.out.println("Error creating command: " + e.getMessage());
+            return null;
         }
-
-        return wrapper;
     }
 }
