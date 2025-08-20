@@ -31,8 +31,8 @@ public class Remove_lower implements Command{
      * Вызывает метод {@link Executor#remove_lower()} у объекта executor.
      */
     @Override
-    public void execute(){
-        executor.remove_lower();
+    public String execute(){
+        return executor.remove_lower();
     }
 
     /**

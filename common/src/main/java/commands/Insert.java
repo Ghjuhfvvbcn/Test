@@ -36,8 +36,8 @@ public class Insert implements CommandWithArgument<Long>{
      * Вызывает метод {@link Executor#insert(Long)} у объекта executor.
      */
     @Override
-    public void execute(){
-        executor.insert(argument);
+    public String execute(){
+        return executor.insert(argument);
     }
 
     /**

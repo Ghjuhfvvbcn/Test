@@ -30,8 +30,8 @@ public class Print_ascending implements Command{
      * Вызывает метод {@link Executor#print_ascending()} у объекта executor.
      */
     @Override
-    public void execute(){
-        executor.print_ascending();
+    public String execute(){
+        return executor.print_ascending();
     }
 
     /**

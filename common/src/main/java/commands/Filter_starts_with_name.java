@@ -36,8 +36,8 @@ public class Filter_starts_with_name implements CommandWithArgument{
      * Вызывает метод {@link Executor#filter_starts_with_name(String)} у объекта executor.
      */
     @Override
-    public void execute(){
-        executor.filter_starts_with_name(argument);
+    public String execute(){
+        return executor.filter_starts_with_name(argument);
     }
 
     /**

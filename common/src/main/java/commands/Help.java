@@ -31,8 +31,8 @@ public class Help implements Command{
      * Вызывает метод {@link Executor#help()} у объекта executor.
      */
     @Override
-    public void execute(){
-        executor.help();
+    public String execute(){
+        return executor.getHelp();
     }
 
     /**

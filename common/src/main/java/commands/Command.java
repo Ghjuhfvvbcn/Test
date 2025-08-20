@@ -7,7 +7,7 @@ public interface Command {
     /**
      * Выполняет команду.
      */
-    void execute();
+    String execute();
 
     /**
      * Возвращает имя команды.

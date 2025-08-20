@@ -30,8 +30,8 @@ public class Clear implements Command{
      * Вызывает метод {@link Executor#clear()} у объекта executor.
      */
     @Override
-    public void execute() {
-        executor.clear();
+    public String execute() {
+        return executor.clear();
     }
 
     /**

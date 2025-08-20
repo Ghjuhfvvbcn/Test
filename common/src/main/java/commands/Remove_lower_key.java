@@ -36,8 +36,8 @@ public class Remove_lower_key implements CommandWithArgument{
      * Вызывает метод {@link Executor#remove_lower_key(Long)} у объекта executor.
      */
     @Override
-    public void execute(){
-        executor.remove_lower_key(argument);
+    public String execute(){
+        return executor.remove_lower_key(argument);
     }
 
 

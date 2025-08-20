@@ -30,8 +30,8 @@ public class Exit implements Command{
      * Вызывает метод {@link Executor#exit()} у объекта executor.
      */
     @Override
-    public void execute(){
-        executor.exit();
+    public String execute(){
+        return executor.exit();
     }
 
     /**

@@ -36,8 +36,8 @@ public class Replace_if_lower implements CommandWithArgument{
      * Вызывает метод {@link Executor#replace_if_lower(Long)} у объекта executor.
      */
     @Override
-    public void execute(){
-        executor.replace_if_lower(argument);
+    public String execute(){
+        return executor.replace_if_lower(argument);
     }
 
     /**

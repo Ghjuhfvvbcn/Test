@@ -36,8 +36,8 @@ public class Remove_key implements CommandWithArgument{
      * Вызывает метод {@link Executor#remove_key(Long)} у объекта executor.
      */
     @Override
-    public void execute(){
-        executor.remove_key(argument);
+    public String execute(){
+        return executor.remove_key(argument);
     }
 
     /**

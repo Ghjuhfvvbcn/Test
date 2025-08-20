@@ -30,8 +30,8 @@ public class Info implements Command{
      * Вызывает метод {@link Executor#info()} у объекта executor.
      */
     @Override
-    public void execute(){
-        executor.info();
+    public String execute(){
+        return executor.getInfo();
     }
 
     /**

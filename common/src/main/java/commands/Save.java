@@ -31,8 +31,8 @@ public class Save implements Command{
      * Вызывает метод {@link Executor#save()} у объекта executor.
      */
     @Override
-    public void execute(){
-        executor.save();
+    public String execute(){
+        return executor.save();
     }
 
     /**

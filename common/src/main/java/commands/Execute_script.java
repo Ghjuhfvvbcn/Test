@@ -30,8 +30,8 @@ public class Execute_script implements Command{
      * Вызывает метод {@link Executor#execute_script()} у объекта executor.
      */
     @Override
-    public void execute(){
-        executor.execute_script();
+    public String execute(){
+        return executor.execute_script();
     }
 
     /**

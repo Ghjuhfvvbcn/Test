@@ -31,8 +31,8 @@ public class Show implements Command{
      * Вызывает метод {@link Executor#show()} у объекта executor.
      */
     @Override
-    public void execute(){
-        executor.show();
+    public String execute(){
+        return executor.getShow();
     }
 
     /**

@@ -36,8 +36,8 @@ public class Update implements CommandWithArgument<Long>{
      * Вызывает метод {@link Executor#update(Long)} у объекта executor.
      */
     @Override
-    public void execute(){
-        executor.update(argument);
+    public String execute(){
+        return executor.update(argument);
     }
 
     /**

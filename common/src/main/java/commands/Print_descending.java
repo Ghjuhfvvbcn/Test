@@ -30,8 +30,8 @@ public class Print_descending implements Command{
      * Вызывает метод {@link Executor#print_descending()} у объекта executor.
      */
     @Override
-    public void execute(){
-        executor.print_descending();
+    public String execute(){
+        return executor.print_descending();
     }
 
     /**
