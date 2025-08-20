@@ -121,7 +121,7 @@ public class ClientMain {
              */
             ByteBuffer buffer = ByteBuffer.wrap(requestData);
             /*
-            Отправляет buffer, хранящий команда+аргумент+группа, в DatagramChannel
+            Отправляет buffer, хранящий команда+аргумент+группа, в DatagramChannel, т.е. на сервер
              */
             channel.write(buffer);
 
@@ -143,7 +143,7 @@ public class ClientMain {
                 Если поток прервался, то отмечаем поток как "прерванный" и вызываем IOException из-за прерывания потока
                  */
                 try {
-                    Thread.sleep(100);
+                    Thread.sleep(1000);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                     throw new IOException("Response wait interrupted");
