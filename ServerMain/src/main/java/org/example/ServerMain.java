@@ -210,6 +210,15 @@ public class ServerMain {
         try {
             String commandName = command.getCommandName();
 
+            if (commandName.equals("remove_lower")) {
+                if (commandWrapper.getMusicBand() != null) {
+                    // Используем специальный метод с готовым MusicBand
+                    if (command instanceof Remove_lower) {
+                        return ((Remove_lower) command).executeWithMusicBand(commandWrapper.getMusicBand());
+                    }
+                }
+                return "Error: No MusicBand data provided";
+            }
             // Для команд, которые требуют MusicBand
             if (commandName.equals("insert") || commandName.equals("update") || commandName.equals("replace_if_lower")) {
                 if (commandWrapper.getMusicBand() != null) {

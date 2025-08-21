@@ -1,5 +1,7 @@
 package commands;
 
+import classes.MusicBand;
+
 /**
  * Команда удаляет из коллекции все меньшие, чем заданный, элементы
  * <p>
@@ -17,6 +19,8 @@ public class Remove_lower implements Command{
      */
     private final Executor executor;
 
+    private MusicBand musicBand;
+
     /**
      * Создает объект {@link Remove_lower} по указанному аргументу типа {@link Executor}.
      * @param executor Приемник команд
@@ -33,6 +37,12 @@ public class Remove_lower implements Command{
     @Override
     public String execute(){
         return executor.remove_lower();
+    }
+
+    public String executeWithMusicBand(MusicBand musicBand) {
+        this.musicBand = musicBand;
+        // Вам нужно добавить соответствующий метод в Executor
+        return executor.remove_lower_server(musicBand);
     }
 
     /**

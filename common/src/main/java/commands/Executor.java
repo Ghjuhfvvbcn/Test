@@ -311,6 +311,18 @@ public class Executor {
         return (sizeBefore - sizeAfter) + " bands were successfully removed";
     }
 
+    public String remove_lower_server(MusicBand band) {
+        if (musicBands.isEmpty()) {
+            return "The collection is empty";
+        }
+        int sizeBefore = musicBands.size();
+        musicBands.values().removeIf(musicBand ->
+                MusicBand.compareByDateAndName.compare(musicBand, band) > 0);
+        int sizeAfter = musicBands.size();
+        saveCollection();
+        return (sizeBefore - sizeAfter) + " bands were successfully removed";
+    }
+
     /**
      * Заменяет элемент если новое значение меньше и возвращает результат в виде строки.
      */
