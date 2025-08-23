@@ -1,0 +1,3 @@
+help
+execute_script
+insert 10

@@ -80,20 +80,70 @@ public class Console {
         }
     }
 
-    /**
-     * Парсит название команды и ее аргумент из одной строки.
-     * Если аргумент не указан - полю argument объекта {@link CommandInput} присваивается значение {@code null}.
-     * <p>
-     * @param s Строка формата {"название команды" "аргумент"} или {"название команды"}
-     * @return Объект типа {@link CommandInput}
-     */
-    public static CommandInput parseCommand(String s){
-        String[] parts = s.trim().split("\\s+", 2);
-        return new CommandInput(
-                parts[0],
-                parts.length > 1 ? parts[1] : null
-        );
+//    /**
+//     * Парсит название команды и ее аргумент из одной строки.
+//     * Если аргумент не указан - полю argument объекта {@link CommandInput} присваивается значение {@code null}.
+//     * <p>
+//     * @param s Строка формата {"название команды" "аргумент"} или {"название команды"}
+//     * @return Объект типа {@link CommandInput}
+//     */
+//    public static CommandInput parseCommand(String s){
+//        String[] parts = s.trim().split("\\s+", 2);
+//        return new CommandInput(
+//                parts[0],
+//                parts.length > 1 ? parts[1] : null
+//        );
+//    }
+//public static CommandInput parseCommand(String s){
+//    s = s.trim();
+//    int firstSpaceIndex = s.indexOf(' ');
+//
+//    if (firstSpaceIndex == -1) {
+//        // Нет аргументов
+//        return new CommandInput(s, null);
+//    }
+//
+//    String command = s.substring(0, firstSpaceIndex);
+//    String argument = s.substring(firstSpaceIndex + 1).trim();
+//
+//    return new CommandInput(command, argument);
+//}
+public static CommandInput parseCommand(String s){
+    s = s.trim();
+
+    if (s.isEmpty()) {
+        return new CommandInput("", null);
     }
+
+    // Ищем первое вхождение пробела (но не в пути!)
+    int firstSpace = -1;
+    boolean inQuotes = false;
+
+    for (int i = 0; i < s.length(); i++) {
+        char c = s.charAt(i);
+        if (c == '"') {
+            inQuotes = !inQuotes;
+        } else if (c == ' ' && !inQuotes) {
+            firstSpace = i;
+            break;
+        }
+    }
+
+    if (firstSpace == -1) {
+        // Нет пробелов - только команда
+        return new CommandInput(s, null);
+    }
+
+    String command = s.substring(0, firstSpace);
+    String argument = s.substring(firstSpace + 1).trim();
+
+    // Убираем обрамляющие кавычки
+    if (argument.startsWith("\"") && argument.endsWith("\"")) {
+        argument = argument.substring(1, argument.length() - 1);
+    }
+
+    return new CommandInput(command, argument);
+}
 
     /**
      * С помощью {@link Console#reader} считывает команду и аргумент (если есть).
@@ -168,67 +218,67 @@ public class Console {
         return null;
     }
 
-    /**
-     * С помощью {@link Console#reader} считывает объект типа {@link classes.MusicBand} из файла со скриптом.
-     * @return Созданный по указанным параметрам объект {@link classes.MusicBand} или {@code null} если один из переданных параметров не соответствует ограничениям.
-     */
-    public MusicBand readMusicBandFromScript(){
-        try{
-            Double x;
-            Integer y;
-            int numberOfParticipants;
-            MusicGenre genre;
-
-            String name = read().trim();
-            if(name.isEmpty()){
-                throw new IllegalArgumentException("Name cannot be empty");
-            }
-            try{
-                x = Double.parseDouble(read().trim());
-            }catch (NumberFormatException e){
-                throw new IllegalArgumentException("Coordinate X should be Double, not null value");
-            }
-            try{
-                y = Integer.parseInt(read().trim());
-            } catch (NumberFormatException e) {
-                throw new IllegalArgumentException("Coordinate Y should be integer, not null value");
-            }
-            try{
-                numberOfParticipants = Integer.parseInt(read().trim());
-                if(numberOfParticipants <= 0){
-                    throw new NumberFormatException();
-                }
-            }catch (NumberFormatException e){
-                throw new IllegalArgumentException("Number of participants should be positive, integer value");
-            }
-            String description = read().trim();
-            if(description.isEmpty()){
-                throw new IllegalArgumentException("Description cannot be empty");
-            }
-            try{
-                genre = MusicGenre.valueOf(read().trim());
-            }catch (IllegalArgumentException e){
-                throw new IllegalArgumentException(
-                        String.format("Music genre should be one of: %s", Arrays.toString(MusicGenre.values()))
-                );
-            }
-            String studioName = read().trim();
-            if(studioName.isEmpty()){
-                throw new IllegalArgumentException("Name of studio cannot be empty");
-            }
-            Coordinates coordinates = new Coordinates(x, y);
-            Studio studio = new Studio(studioName);
-
-            MusicBand musicBand = new MusicBand(name, coordinates, numberOfParticipants, description, genre, studio);
-            return musicBand;
-
-        }catch(IOException e){
-            System.err.println("IO error in the process of reading an object: " + e.getMessage());
-        }catch(IllegalArgumentException e){
-            System.out.println("Error in the process of reading an object: " + e.getMessage());
-        }
-        return null;
-    }
+//    /**
+//     * С помощью {@link Console#reader} считывает объект типа {@link classes.MusicBand} из файла со скриптом.
+//     * @return Созданный по указанным параметрам объект {@link classes.MusicBand} или {@code null} если один из переданных параметров не соответствует ограничениям.
+//     */
+//    public MusicBand readMusicBandFromScript(){
+//        try{
+//            Double x;
+//            Integer y;
+//            int numberOfParticipants;
+//            MusicGenre genre;
+//
+//            String name = read().trim();
+//            if(name.isEmpty()){
+//                throw new IllegalArgumentException("Name cannot be empty");
+//            }
+//            try{
+//                x = Double.parseDouble(read().trim());
+//            }catch (NumberFormatException e){
+//                throw new IllegalArgumentException("Coordinate X should be Double, not null value");
+//            }
+//            try{
+//                y = Integer.parseInt(read().trim());
+//            } catch (NumberFormatException e) {
+//                throw new IllegalArgumentException("Coordinate Y should be integer, not null value");
+//            }
+//            try{
+//                numberOfParticipants = Integer.parseInt(read().trim());
+//                if(numberOfParticipants <= 0){
+//                    throw new NumberFormatException();
+//                }
+//            }catch (NumberFormatException e){
+//                throw new IllegalArgumentException("Number of participants should be positive, integer value");
+//            }
+//            String description = read().trim();
+//            if(description.isEmpty()){
+//                throw new IllegalArgumentException("Description cannot be empty");
+//            }
+//            try{
+//                genre = MusicGenre.valueOf(read().trim());
+//            }catch (IllegalArgumentException e){
+//                throw new IllegalArgumentException(
+//                        String.format("Music genre should be one of: %s", Arrays.toString(MusicGenre.values()))
+//                );
+//            }
+//            String studioName = read().trim();
+//            if(studioName.isEmpty()){
+//                throw new IllegalArgumentException("Name of studio cannot be empty");
+//            }
+//            Coordinates coordinates = new Coordinates(x, y);
+//            Studio studio = new Studio(studioName);
+//
+//            MusicBand musicBand = new MusicBand(name, coordinates, numberOfParticipants, description, genre, studio);
+//            return musicBand;
+//
+//        }catch(IOException e){
+//            System.err.println("IO error in the process of reading an object: " + e.getMessage());
+//        }catch(IllegalArgumentException e){
+//            System.out.println("Error in the process of reading an object: " + e.getMessage());
+//        }
+//        return null;
+//    }
 
     /**
      * С помощью {@link Console#reader} считывает строку.
@@ -523,5 +573,63 @@ public class Console {
             }
         }
         return studioName;
+    }
+
+    public MusicBand readMusicBandFromScript() throws IOException {
+        try {
+            // Чтение с проверкой на конец файла
+            String name = readLineWithEOFCheck("name");
+            if (name == null || name.trim().isEmpty()) {
+                throw new IllegalArgumentException("Band name cannot be empty");
+            }
+
+            String xStr = readLineWithEOFCheck("x coordinate");
+            Double x = Double.parseDouble(xStr);
+
+            String yStr = readLineWithEOFCheck("y coordinate");
+            Integer y = Integer.parseInt(yStr);
+
+            String participantsStr = readLineWithEOFCheck("number of participants");
+            int numberOfParticipants = Integer.parseInt(participantsStr);
+            if (numberOfParticipants <= 0) {
+                throw new IllegalArgumentException("Number of participants must be positive");
+            }
+
+            String description = readLineWithEOFCheck("description");
+            if (description == null || description.trim().isEmpty()) {
+                throw new IllegalArgumentException("Description cannot be empty");
+            }
+
+            String genreStr = readLineWithEOFCheck("genre");
+            MusicGenre genre;
+            try {
+                genre = MusicGenre.valueOf(genreStr.trim().toUpperCase());
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Invalid music genre: " + genreStr +
+                        ". Valid values: " + Arrays.toString(MusicGenre.values()));
+            }
+
+            String studioName = readLineWithEOFCheck("studio name");
+            if (studioName == null || studioName.trim().isEmpty()) {
+                throw new IllegalArgumentException("Studio name cannot be empty");
+            }
+
+            Coordinates coordinates = new Coordinates(x, y);
+            Studio studio = new Studio(studioName);
+
+            return new MusicBand(name.trim(), coordinates, numberOfParticipants,
+                    description.trim(), genre, studio);
+
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Invalid number format: " + e.getMessage());
+        }
+    }
+
+    private String readLineWithEOFCheck(String fieldName) throws IOException {
+        String line = read();
+        if (line == null) {
+            throw new IOException("Unexpected end of file while reading " + fieldName);
+        }
+        return line;
     }
 }
