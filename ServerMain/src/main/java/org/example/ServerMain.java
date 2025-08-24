@@ -182,6 +182,7 @@ public class ServerMain {
                         break;
 
                     case "filter_starts_with_name":
+                    case "execute_script":
                         if (commandWrapper.getArgument() != null) {
                             // Устанавливаем аргумент в СУЩЕСТВУЮЩИЙ объект команды
                             commandWithArg.setArgument(commandWrapper.getArgument().toString());

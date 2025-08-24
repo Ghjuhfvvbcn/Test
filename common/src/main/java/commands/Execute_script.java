@@ -15,6 +15,11 @@ public class Execute_script implements CommandWithArgument<String> {
     @Override
     public String execute() {
         if (argument == null || argument.trim().isEmpty()) {
+            if(argument == null){
+                System.out.println("argument = null");
+            }else if(argument.trim().isEmpty()){
+                System.out.println("argument.trim().isEmpty()");
+            }
             return "Error: Script filename is required";
         }
         return executor.execute_script(argument);

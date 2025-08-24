@@ -108,42 +108,43 @@ public class Console {
 //
 //    return new CommandInput(command, argument);
 //}
-public static CommandInput parseCommand(String s){
-    s = s.trim();
+    public static CommandInput parseCommand(String s){
+        s = s.trim();
 
-    if (s.isEmpty()) {
-        return new CommandInput("", null);
-    }
-
-    // Ищем первое вхождение пробела (но не в пути!)
-    int firstSpace = -1;
-    boolean inQuotes = false;
-
-    for (int i = 0; i < s.length(); i++) {
-        char c = s.charAt(i);
-        if (c == '"') {
-            inQuotes = !inQuotes;
-        } else if (c == ' ' && !inQuotes) {
-            firstSpace = i;
-            break;
+        if (s.isEmpty()) {
+            return new CommandInput("", null);
         }
+
+        // Ищем первое вхождение пробела (но не в пути!)
+        int firstSpace = -1;
+        boolean inQuotes = false;
+
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            if (c == '"') {
+                inQuotes = !inQuotes;
+            } else if (c == ' ' && !inQuotes) {
+                firstSpace = i;
+                break;
+            }
+        }
+
+        if (firstSpace == -1) {
+            // Нет пробелов - только команда
+            System.out.println("From Console: argument set as null");
+            return new CommandInput(s, null);
+        }
+
+        String command = s.substring(0, firstSpace);
+        String argument = s.substring(firstSpace + 1).trim();
+
+        // Убираем обрамляющие кавычки
+        if (argument.startsWith("\"") && argument.endsWith("\"")) {
+            argument = argument.substring(1, argument.length() - 1);
+        }
+
+        return new CommandInput(command, argument);
     }
-
-    if (firstSpace == -1) {
-        // Нет пробелов - только команда
-        return new CommandInput(s, null);
-    }
-
-    String command = s.substring(0, firstSpace);
-    String argument = s.substring(firstSpace + 1).trim();
-
-    // Убираем обрамляющие кавычки
-    if (argument.startsWith("\"") && argument.endsWith("\"")) {
-        argument = argument.substring(1, argument.length() - 1);
-    }
-
-    return new CommandInput(command, argument);
-}
 
     /**
      * С помощью {@link Console#reader} считывает команду и аргумент (если есть).

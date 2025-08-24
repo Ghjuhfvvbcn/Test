@@ -205,6 +205,7 @@ public class ClientMain {
                     break;
 
                 case "filter_starts_with_name":
+                case "execute_script":
                     if (input.argument == null || input.argument.trim().isEmpty()) {
                         System.out.println("Error: Command '" + input.command + "' requires a string argument");
                         return null;
