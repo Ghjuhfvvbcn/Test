@@ -25,6 +25,8 @@ public class Executor {
     private Console consoleScript;
 
     private final Stack<FileInputStream> scriptStack = new Stack<>();
+    private final Set<String> executingScripts = new HashSet<>();  // ← Добавьте это!
+
 
     public void setConsoleScript(FileInputStream scriptStream) {
         this.consoleScript = new Console(scriptStream);
@@ -435,100 +437,174 @@ public class Executor {
         return musicBands;
     }
 
-    public String execute_script(String filename) {
-        try {
-            File scriptFile = new File(filename);
+//    public String execute_script(String filename) {
+//        try {
+//            File scriptFile = new File(filename);
+//
+//            // Проверка существования файла
+//            if (!scriptFile.exists()) {
+//                return "Error: not found: " + filename;
+//            }
+//            if (!scriptFile.canRead()) {
+//                return "Error: Cannot read script file: " + filename;
+//            }
+//            if (scriptFile.isDirectory()) {
+//                return "Error: Specified path is a directory: " + filename;
+//            }
+//
+//            // Проверка на рекурсию
+//            if (isScriptAlreadyInStack(scriptFile)) {
+//                return "Error: Recursive script execution detected for file: " + filename;
+//            }
+//
+//            FileInputStream scriptStream = new FileInputStream(scriptFile);
+//            scriptStack.push(scriptStream);
+//            setConsoleScript(scriptStream);
+//
+//            StringBuilder result = new StringBuilder();
+//            result.append("Executing script: ").append(filename).append("\n");
+//
+//            String line;
+//            int lineNumber = 0;
+//
+//            while ((line = consoleScript.readLine()) != null) {
+//                lineNumber++;
+//                if (line.trim().isEmpty()) continue;
+//
+//                try {
+//                    Console.CommandInput input = Console.parseCommand(line);
+//
+//                    // Проверка существования команды
+//                    if (!Console.isValidCommand(input.command)) {
+//                        result.append("Line ").append(lineNumber).append(": Unknown command: '")
+//                                .append(input.command).append("'\n");
+//                        continue;
+//                    }
+//
+//                    // Проверка обязательных аргументов
+//                    if (input.command.equals("execute_script")) {
+//                        if (input.argument == null || input.argument.trim().isEmpty()) {
+//                            result.append("Line ").append(lineNumber)
+//                                    .append(": Error: execute_script requires filename argument\n");
+//                            continue;
+//                        }
+//                    }
+//
+//                    if (input.command.equals("insert") || input.command.equals("update") ||
+//                            input.command.equals("replace_if_lower") || input.command.equals("remove_key")) {
+//
+//                        if (input.argument == null || input.argument.trim().isEmpty()) {
+//                            result.append("Line ").append(lineNumber)
+//                                    .append(": Error: Command '").append(input.command)
+//                                    .append("' requires a key argument\n");
+//                            continue;
+//                        }
+//                    }
+//
+//                    // Выполнение команды
+//                    if (input.command.equals("execute_script")) {
+//                        result.append(execute_script(input.argument)).append("\n");
+//                    } else {
+//                        result.append(processScriptCommand(input, lineNumber)).append("\n");
+//                    }
+//
+//                } catch (Exception e) {
+//                    result.append("Line ").append(lineNumber).append(": Error: ")
+//                            .append(e.getMessage()).append("\n");
+//                }
+//            }
+//
+//            scriptStack.pop();
+//            if (!scriptStack.isEmpty()) {
+//                setConsoleScript(scriptStack.peek());
+//            }
+//
+//            return result.toString();
+//
+//        } catch (FileNotFoundException e) {
+//            return "Error: Script file not found: " + filename;
+//        } catch (SecurityException e) {
+//            return "Error: Access denied to script file: " + filename;
+//        } catch (IOException e) {
+//            return "Error: IO error reading script: " + e.getMessage();
+//        } catch (Exception e) {
+//            return "Error: Unexpected error: " + e.getMessage();
+//        }
+//    }
+public String execute_script(String filename) {
+    File scriptFile = new File(filename);
+    String canonicalPath = null;
 
-            // Проверка существования файла
-            if (!scriptFile.exists()) {
-                return "Error: Script file not found: " + filename;
-            }
-            if (!scriptFile.canRead()) {
-                return "Error: Cannot read script file: " + filename;
-            }
-            if (scriptFile.isDirectory()) {
-                return "Error: Specified path is a directory: " + filename;
-            }
+    try {
+        canonicalPath = scriptFile.getCanonicalPath();
 
-            // Проверка на рекурсию
-            if (isScriptAlreadyInStack(scriptFile)) {
-                return "Error: Recursive script execution detected for file: " + filename;
-            }
+        // Проверка на рекурсию
+        if (executingScripts.contains(canonicalPath)) {
+            return "Error: Recursive script execution detected for: " + filename;
+        }
 
-            FileInputStream scriptStream = new FileInputStream(scriptFile);
-            scriptStack.push(scriptStream);
-            setConsoleScript(scriptStream);
+        // Проверка существования файла
+        if (!scriptFile.exists() || !scriptFile.isFile()) {
+            return "Error: Script file not found: " + filename;
+        }
+        if (!scriptFile.canRead()) {
+            return "Error: Cannot read script file: " + filename;
+        }
 
-            StringBuilder result = new StringBuilder();
-            result.append("Executing script: ").append(filename).append("\n");
+        // Добавляем скрипт в выполняемые
+        executingScripts.add(canonicalPath);
 
-            String line;
-            int lineNumber = 0;
+        FileInputStream scriptStream = new FileInputStream(scriptFile);
+        Console consoleScript = new Console(scriptStream);
 
-            while ((line = consoleScript.readLine()) != null) {
-                lineNumber++;
-                if (line.trim().isEmpty()) continue;
+        StringBuilder result = new StringBuilder();
+        result.append("Executing script: ").append(filename).append("\n");
 
-                try {
-                    Console.CommandInput input = Console.parseCommand(line);
+        String line;
+        int lineNumber = 0;
 
-                    // Проверка существования команды
-                    if (!Console.isValidCommand(input.command)) {
-                        result.append("Line ").append(lineNumber).append(": Unknown command: '")
-                                .append(input.command).append("'\n");
+        while ((line = consoleScript.readLine()) != null) {
+            lineNumber++;
+            if (line.trim().isEmpty()) continue;
+
+            try {
+                Console.CommandInput input = Console.parseCommand(line);
+
+                if (!Console.isValidCommand(input.command)) {
+                    result.append("Line ").append(lineNumber).append(": Unknown command: '")
+                            .append(input.command).append("'\n");
+                    continue;
+                }
+
+                // Обработка execute_script
+                if (input.command.equals("execute_script")) {
+                    if (input.argument == null || input.argument.trim().isEmpty()) {
+                        result.append("Line ").append(lineNumber)
+                                .append(": Error: execute_script requires filename\n");
                         continue;
                     }
-
-                    // Проверка обязательных аргументов
-                    if (input.command.equals("execute_script")) {
-                        if (input.argument == null || input.argument.trim().isEmpty()) {
-                            result.append("Line ").append(lineNumber)
-                                    .append(": Error: execute_script requires filename argument\n");
-                            continue;
-                        }
-                    }
-
-                    if (input.command.equals("insert") || input.command.equals("update") ||
-                            input.command.equals("replace_if_lower") || input.command.equals("remove_key")) {
-
-                        if (input.argument == null || input.argument.trim().isEmpty()) {
-                            result.append("Line ").append(lineNumber)
-                                    .append(": Error: Command '").append(input.command)
-                                    .append("' requires a key argument\n");
-                            continue;
-                        }
-                    }
-
-                    // Выполнение команды
-                    if (input.command.equals("execute_script")) {
-                        result.append(execute_script(input.argument)).append("\n");
-                    } else {
-                        result.append(processScriptCommand(input, lineNumber)).append("\n");
-                    }
-
-                } catch (Exception e) {
-                    result.append("Line ").append(lineNumber).append(": Error: ")
-                            .append(e.getMessage()).append("\n");
+                    result.append(execute_script(input.argument)).append("\n");
+                } else {
+                    result.append(processScriptCommand(input, lineNumber)).append("\n");
                 }
+
+            } catch (Exception e) {
+                result.append("Line ").append(lineNumber).append(": Error: ")
+                        .append(e.getMessage()).append("\n");
             }
+        }
 
-            scriptStack.pop();
-            if (!scriptStack.isEmpty()) {
-                setConsoleScript(scriptStack.peek());
-            }
+        return result.toString();
 
-            return result.toString();
-
-        } catch (FileNotFoundException e) {
-            return "Error: Script file not found: " + filename;
-        } catch (SecurityException e) {
-            return "Error: Access denied to script file: " + filename;
-        } catch (IOException e) {
-            return "Error: IO error reading script: " + e.getMessage();
-        } catch (Exception e) {
-            return "Error: Unexpected error: " + e.getMessage();
+    } catch (IOException e) {
+        return "Error reading script: " + e.getMessage();
+    } finally {
+        // Всегда удаляем скрипт из множества выполнения
+        if (canonicalPath != null) {
+            executingScripts.remove(canonicalPath);
         }
     }
+}
 
     private boolean isScriptAlreadyInStack(File scriptFile) {
         try {
