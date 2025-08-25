@@ -131,7 +131,6 @@ public class Console {
 
         if (firstSpace == -1) {
             // Нет пробелов - только команда
-            System.out.println("From Console: argument set as null");
             return new CommandInput(s, null);
         }
 
