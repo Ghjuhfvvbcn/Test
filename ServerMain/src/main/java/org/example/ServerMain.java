@@ -45,7 +45,10 @@ public class ServerMain {
             Привязываем UDP канал к порту 12345.
             UDP не устанавливает соединение, но фиксирует порт для приема пакетов.
              */
-            channel.bind(new InetSocketAddress(PORT));
+//            channel.bind(new InetSocketAddress(PORT));
+            channel.bind(new InetSocketAddress("0.0.0.0", PORT));  // Слушаем все сетевые интерфейсы
+
+            System.out.println("Server started on all interfaces. Port: " + PORT);
 
             /*
             Устанавливаем неблокирующий режим - метод receive будет возвращать null

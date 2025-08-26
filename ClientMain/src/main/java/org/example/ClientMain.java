@@ -12,11 +12,23 @@ import java.nio.channels.DatagramChannel;
 import java.util.Arrays;
 
 public class ClientMain {
-    private static final String SERVER_HOST = "localhost";
-    private static final int SERVER_PORT = 12345;
+    private static String SERVER_HOST = "localhost";
+    private static int SERVER_PORT = 12345;
 
     public static void main(String[] args) {
         Console console = new Console();
+        if (args.length >= 1) {
+            SERVER_HOST = args[0];
+        }
+        if (args.length >= 2) {
+            try {
+                SERVER_PORT = Integer.parseInt(args[1]);
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid port number, using default: " + SERVER_PORT);
+            }
+        }
+
+        System.out.println("Connecting to server: " + SERVER_HOST + ":" + SERVER_PORT);
         System.out.println("Client started. Type 'help' for available commands.");
 
         while (true) {
